@@ -2,6 +2,8 @@ from pickle       import dump, load
 from log          import log
 from json.decoder import JSONDecodeError
 from functools    import partial
+from time         import sleep
+from collections  import defaultdict
 from googletrans  import Translator
 from duolingo     import Duolingo
 from tqdm         import tqdm
@@ -43,21 +45,23 @@ try:
     words = list(filter(lambda i: i["word_string"] not in word_map, words))
 except Exception as e:
     log.warning(f"No save found, reinitializing with errors: {e}")
-    word_map = {}
+    word_map = defaultdict(list)
     
 log.debug(f"Loading {len(words)} new words")
 
 for w in tqdm(words):
     word, strength = w["word_string"], w["strength"]
     try:
-        word_map[word] = (t.translate(word, src=src_lang, dest=dest_lang).text, strength)
+        word_map[w["pos"]].append((t.translate(word, src=src_lang, dest=dest_lang).text, strength, w["skill"]))
     except JSONDecodeError as e:
         log.error(f"Translate error: {e}, for word: {word}")
         log.debug(f"This could be because of quota limits. Stop running?")
         if stop_input() == "s": break
     except KeyboardInterrupt as k:
         if stop_input() == "s": break
+    sleep(0.2)
     # log.debug(f"Translated {w} as {word_map[w]}")
 
 log.debug("Saving word_map to file")
 dump(word_map, open("word_map_save.txt", "wb"))
+
