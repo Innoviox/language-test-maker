@@ -1,5 +1,6 @@
 from pickle          import dump, load
 from json.decoder    import JSONDecodeError
+from json            import loads
 from functools       import partial
 from time            import sleep
 from urllib.parse    import quote
@@ -7,6 +8,7 @@ from collections     import defaultdict
 from os.path         import exists
 from os              import mkdir
 from random          import sample
+from ast             import literal_eval
 from googletrans     import Translator
 from duolingo        import Duolingo
 from tqdm            import tqdm
@@ -20,7 +22,7 @@ from log             import log
 
 AUDIO_PATH = "audio/{}/{}.mp3"
 
-def take_input(inmsg, valid, trans=lambda s:s[0].lower()):
+def take_input(inmsg, valid, trans=lambda s:s):
     while True:
         s = input(inmsg)
         if s:
@@ -98,14 +100,14 @@ def load_words():
             if tw:
                 word_map[w["pos"]][word] = (tw, strength, w["skill"])
             else:
-                log.error(f"No translation found for {word}, trying headless")
-                tw = driver_translate(word)
+                # log.error(f"No translation found for {word}, trying headless")
+                tw = headless_translate(word)
                 word_map[w["pos"]][word] = (tw, strength, w["skill"])
             sleep(0.2)
         except JSONDecodeError as e:
             log.error(f"Translate error: {e}, for word: {word}")
             log.debug(f"This could be because of quota limits. Stop running?")
-            s = take_input("[s]top, [c]hange to duolingo-translator: ", "sc")
+            s = take_input("[s]top, [c]hange to duolingo-translator: ", "sc", lambda s: s[0].lower())
             if s == "s": break
             else:
                 translate = duolingo_translate
@@ -137,7 +139,7 @@ def _ensure_audio_file(word, lang=src_lang):
 
 def sentence_to_audio(sent, lang=src_lang):
     for token in tokenizer(sent): # tqdm(tokenizer(sent)):
-        playsound(_ensure_audio_file(str(token), lang=lang))
+        playsound(_ensure_audio_file(str(token), lang=lang), block=False)
 
 def gen_words(types=list(word_map.keys()), n=10):
     all_words = {}
@@ -147,3 +149,72 @@ def gen_words(types=list(word_map.keys()), n=10):
         
 # sentence_to_audio("Ich bin ein Mann")
 translate_sentence = headless_translate # Wrapper method
+
+data_model = '{"fromLanguage":"%s","learningLanguage":"%s","challengeTypes":%s,"type":"GLOBAL_PRACTICE","juicy":True,"smartTipsVersion":2}'
+chal_types = ["characterIntro","characterMatch","characterSelect","completeReverseTranslation","definition","dialogue","form",
+              "freeResponse","gapFill","judge","listen","name","listenComprehension","listenTap","readComprehension","select",
+              "selectPronunciation","selectTranscription","speak","tapCloze","tapComplete"]#,"tapDescribe","translate"]
+# chal_types = ["characterIntro", "gapFill"]
+session_api = "https://www.duolingo.com/2017-06-30/sessions"
+
+class Challenge:
+    def __init__(self, d):
+        self.type = t = d['type']
+        self.is_supported = True
+        
+        if t == "form":
+            self.choices = d['choices']
+            self.prompt = " _____ ".join(d['promptPieces'])
+            self.trans = d['solutionTranslation']
+            self.corr = d['correctIndex']
+        elif t == "select":
+            c = d['choices']
+            self.choices = [i['phrase'] for i in c]
+            self.tts = [i['tts'] for i in c]
+            self.imgs = [i['image'] for i in c]
+
+            self.prompt = d['prompt']
+            self.corr = d['correctIndex']
+        elif t == "judge":
+            self.choices = d['choices']
+            self.prompt = d['prompt']
+            self.corr = d['correctIndices'][0]
+        elif t == "listenTap":
+            c = d['choices']
+            self.choices = [i['text'] for i in c]
+            self.c_tts = [i['tts'] for i in c]
+            
+            self.tts = d['tts']
+            self.stts = d['slowTts']
+
+            self.prompt = d['prompt']
+            self.corr = d['correctIndices']
+        elif t == "speak":
+            self.is_supported = False # TODO: speak
+        elif t == "listen":
+            self.tts = d['tts']
+            self.stts = d['slowTts']
+
+            self.prompt = d['prompt']
+##        else:
+##            print(t, d.keys())
+##            d['q']=1
+##            while 1:
+##                s = take_input(": ", d)
+##                if s == 'q': break
+##                print(d[s])
+            
+def get_challenges(src=src_lang, dest=dest_lang, cls=Challenge):
+    data = data_model % (dest, src, str(chal_types))
+    json = literal_eval(data)
+    resp = d.session.post(session_api, json=json)
+    resp = loads(resp.text)
+    chals = resp['challenges']
+
+    return list(map(cls, chals))
+
+def play(url):
+    f = f"audio/{url.split('/')[-1]}.mp3"
+    with open(f, "wb") as file:
+        file.write(d.session.get(url))
+    playsound(f, block=False)
