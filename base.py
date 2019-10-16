@@ -90,6 +90,7 @@ except Exception as e:
     word_map = defaultdict(dict)
 
 def load_words():
+    global translate
     for w in tqdm(words):
         word, strength = w["word_string"], w["strength"]
         try:

@@ -9,14 +9,14 @@ class TransQ(translate_question):
     def initialize(self, master=None):
         if master: self.setupUi(master)
         
-        selflations = []
+        self.translations = []
         
         for i, word in enumerate(gen_words(n=5), start=1):
             w, (tw, *_) = word
             lang = src_lang
             # if random() < 0.5:
             #     w, tw, lang = tw, w, dest_lang
-            selflations.append(tw)
+            self.translations.append(tw)
 
             tb = getattr(self, f"label_{i}")
             tb.setText(w)
@@ -42,7 +42,7 @@ class TransQ(translate_question):
         log.debug("Received check")
         for i in range(5):
             line = self.get_line(i)
-            ans, corr = line.text(), selflations[i]
+            ans, corr = line.text(), self.translations[i]
 
             self.set_color(line, "#00FF00" if ans == corr else "#FF0000")
 
@@ -53,13 +53,13 @@ class TransQ(translate_question):
         for i in range(5):
             line = self.get_line(i)
 
-            line.setText(selflations[i])
+            line.setText(self.translations[i])
             self.set_color(line, "#FFFFFF")
 
         self.set_next()
 
     def set_next(self):
-        if all(self.get_line(i).text() == selflations[i] for i in range(5)):
+        if all(self.get_line(i).text() == self.translations[i] for i in range(5)):
             self.check.setText("Next")
             self.check.repaint()
             self._reconn(self.initialize)
