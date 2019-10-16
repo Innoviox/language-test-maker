@@ -7,3 +7,5 @@ selenium
 gtts
 playsound
 colorlog
+PySide2
+unidecode

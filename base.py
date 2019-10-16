@@ -5,6 +5,8 @@ from time            import sleep
 from urllib.parse    import quote
 from collections     import defaultdict
 from os.path         import exists
+from os              import mkdir
+from random          import sample
 from googletrans     import Translator
 from duolingo        import Duolingo
 from tqdm            import tqdm
@@ -13,9 +15,10 @@ from spacy.lang.en   import English
 from selenium        import webdriver
 from gtts            import gTTS
 from playsound       import playsound
+from unidecode       import unidecode
 from log             import log
 
-AUDIO_PATH = "audio/{}.mp3"
+AUDIO_PATH = "audio/{}/{}.mp3"
 
 def take_input(inmsg, valid, trans=lambda s:s[0].lower()):
     while True:
@@ -123,16 +126,23 @@ log.debug("Initializing tokenizer")
 nlp = English()
 tokenizer = Tokenizer(nlp.vocab)
 
-def _ensure_audio_file(word):
-    f = AUDIO_PATH.format(word)
+def _ensure_audio_file(word, lang=src_lang):
+    f = AUDIO_PATH.format(lang, unidecode(word))
     if not exists(f):
+        if not exists(f"audio/{lang}/"): mkdir(f"audio/{lang}/")
         with open(f, "wb") as file:
-            gTTS(word, lang=src_lang).write_to_fp(file)
+            gTTS(word, lang=lang).write_to_fp(file)
     return f
 
-def sentence_to_audio(sent):
-    for token in tqdm(tokenizer(sent)):
-        playsound(_ensure_audio_file(str(token)))
+def sentence_to_audio(sent, lang=src_lang, _i=0):
+    for token in tokenizer(sent): # tqdm(tokenizer(sent)):
+        playsound(_ensure_audio_file(str(token), lang=lang))
 
+def gen_words(types=list(word_map.keys()), n=10):
+    all_words = {}
+    for t in types:
+        all_words.update(word_map[t])
+    return sample(all_words.items(), n)
+        
 # sentence_to_audio("Ich bin ein Mann")
 translate_sentence = headless_translate # Wrapper method
