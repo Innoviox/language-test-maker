@@ -1,6 +1,8 @@
 hyper
 googletrans
-duolingo
+duolingo-api
 tqdm
 spacy
 selenium
+gtts
+playsound

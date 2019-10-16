@@ -4,13 +4,18 @@ from functools       import partial
 from time            import sleep
 from urllib.parse    import quote
 from collections     import defaultdict
+from os.path         import exists
 from googletrans     import Translator
 from duolingo        import Duolingo
 from tqdm            import tqdm
 from spacy.tokenizer import Tokenizer
 from spacy.lang.en   import English
 from selenium        import webdriver
+from gtts            import gTTS
+from playsound       import playsound
 from log             import log
+
+AUDIO_PATH = "audio/{}.mp3"
 
 def take_input(inmsg, valid, trans=lambda s:s[0].lower()):
     while True:
@@ -76,38 +81,38 @@ except Exception as e:
     log.warning(f"No save found, reinitializing with errors: {e}")
     word_map = defaultdict(dict)
 
+def load_words():
+    for w in tqdm(words):
+        word, strength = w["word_string"], w["strength"]
+        try:
+            tw = translate(word)
+            if tw:
+                word_map[w["pos"]][word] = (tw, strength, w["skill"])
+            else:
+                log.error(f"No translation found for {word}, trying headless")
+                tw = driver_translate(word)
+                word_map[w["pos"]][word] = (tw, strength, w["skill"])
+            sleep(0.2)
+        except JSONDecodeError as e:
+            log.error(f"Translate error: {e}, for word: {word}")
+            log.debug(f"This could be because of quota limits. Stop running?")
+            s = take_input("[s]top, [c]hange to duolingo-translator: ", "sc")
+            if s == "s": break
+            else:
+                translate = duolingo_translate
+            # if stop_input() == "s": break
+        except KeyboardInterrupt as k:
+            if stop_input() == "s": break
+        except Exception as e:
+            log.error(f"Critical error: {e}")
+            break
+
 if words:
     log.debug(f"Loading {len(words)} new words")
-
-for w in tqdm(words):
-    word, strength = w["word_string"], w["strength"]
-    try:
-        tw = translate(word)
-        if tw:
-            word_map[w["pos"]][word] = (tw, strength, w["skill"])
-        else:
-            log.error(f"No translation found for {word}, trying headless")
-            tw = driver_translate(word)
-            word_map[w["pos"]][word] = (tw, strength, w["skill"])
-        sleep(0.2)
-    except JSONDecodeError as e:
-        log.error(f"Translate error: {e}, for word: {word}")
-        log.debug(f"This could be because of quota limits. Stop running?")
-        s = take_input("[s]top, [c]hange to duolingo-translator: ", "sc")
-        if s == "s": break
-        else:
-            translate = duolingo_translate
-        # if stop_input() == "s": break
-    except KeyboardInterrupt as k:
-        if stop_input() == "s": break
-    except Exception as e:
-        log.error(f"Critical error: {e}")
-        break
+    load_words()
     
-    # log.debug(f"Translated {w} as {word_map[w]}")
-
-log.debug("Saving word_map to file")
-dump(word_map, open("word_map_save.txt", "wb"))
+    log.debug("Saving word_map to file")
+    dump(word_map, open("word_map_save.txt", "wb"))
 
 driver.close()
 
@@ -115,7 +120,16 @@ log.debug("Initializing tokenizer")
 nlp = English()
 tokenizer = Tokenizer(nlp.vocab)
 
+def _ensure_audio_file(word):
+    f = AUDIO_PATH.format(word)
+    if not exists(f):
+        with open(f, "wb") as file:
+            gTTS(word, lang=src_lang).write_to_fp(file)
+    return f
+
 def sentence_to_audio(sent):
     for token in tqdm(tokenizer(sent)):
-        ...
-    
+        playsound(_ensure_audio_file(str(token)))
+
+# sentence_to_audio("Ich bin ein Mann")
+        
