@@ -3,3 +3,5 @@ __pycache__/
 duolingo_save.txt
 word_map_save.txt
 audio
+qt5
+*.DS_Store
