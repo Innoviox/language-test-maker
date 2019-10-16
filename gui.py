@@ -1,35 +1,28 @@
 from PySide2.QtWidgets   import QApplication, QMainWindow, QDialog
-from converted.translate import Ui_Dialog
+from converted.translate import Ui_Dialog as translate_question
+from converted.sentence  import Ui_Dialog as sentence_question
 from base                import gen_words, sentence_to_audio, partial, src_lang, dest_lang, log
 from random              import random
 from sys                 import argv
 
-class MainWindow(QDialog):
-    def __init__(self):
-        super(MainWindow, self).__init__()
+class TransQ(translate_question):
+    def initialize(self, master=None):
+        if master: self.setupUi(master)
         
-        self.form = Ui_Dialog()
-        self.form.setupUi(self)
-
-        self._initialize()
-        
-        log.info("Set up UI")
-
-    def _initialize(self):
-        self.translations = []
+        selflations = []
         
         for i, word in enumerate(gen_words(n=5), start=1):
             w, (tw, *_) = word
             lang = src_lang
             # if random() < 0.5:
             #     w, tw, lang = tw, w, dest_lang
-            self.translations.append(tw)
+            selflations.append(tw)
 
-            tb = getattr(self.form, f"label_{i}")
+            tb = getattr(self, f"label_{i}")
             tb.setText(w)
             tb.repaint()
 
-            btn = getattr(self.form, f"commandLinkButton_{i}")
+            btn = getattr(self, f"commandLinkButton_{i}")
             try: btn.clicked.disconnect()
             except: pass
             btn.clicked.connect(partial(sentence_to_audio, w, lang))
@@ -38,18 +31,18 @@ class MainWindow(QDialog):
             line.setText("")
             self.set_color(line, "#FFFFFF")
 
-        self.form.check.setText("Check")
-        self.form.check.repaint()
+        self.check.setText("Check")
+        self.check.repaint()
         
-        self._reconn(self.check)
+        self._reconn(self.check_)
         
-        self.form.show.clicked.connect(self.show_)
+        self.show.clicked.connect(self.show_)
 
-    def check(self):
+    def check_(self):
         log.debug("Received check")
         for i in range(5):
             line = self.get_line(i)
-            ans, corr = line.text(), self.translations[i]
+            ans, corr = line.text(), selflations[i]
 
             self.set_color(line, "#00FF00" if ans == corr else "#FF0000")
 
@@ -60,31 +53,42 @@ class MainWindow(QDialog):
         for i in range(5):
             line = self.get_line(i)
 
-            line.setText(self.translations[i])
+            line.setText(selflations[i])
             self.set_color(line, "#FFFFFF")
 
         self.set_next()
 
     def set_next(self):
-        if all(self.get_line(i).text() == self.translations[i] for i in range(5)):
-            self.form.check.setText("Next")
-            self.form.check.repaint()
-            self._reconn(self._initialize)
+        if all(self.get_line(i).text() == selflations[i] for i in range(5)):
+            self.check.setText("Next")
+            self.check.repaint()
+            self._reconn(self.initialize)
             log.info("All correct!")
 
     def get_line(self, i):
-        return getattr(self.form, f"lineEdit_{i + 1}")
+        return getattr(self, f"lineEdit_{i + 1}")
     
     def set_color(self, line, color):
         line.setStyleSheet(f"background-color: {color}")
         line.repaint()
 
     def _reconn(self, new):
-        try: self.form.check.clicked.disconnect()
+        try: self.check.clicked.disconnect()
         except: pass
-        self.form.check.clicked.connect(new)
+        self.check.clicked.connect(new)
 
+class SentQ(sentence_question):
+    def initialize(self, master=None):
+        if master: self.setupUi(master)
+
+class MainWindow(QDialog):
+    def __init__(self):
+        super(MainWindow, self).__init__()
         
+        self.trans = TransQ()
+        self.trans.initialize(master=self)
+
+        log.info("Set up UI")
 
 if __name__ == "__main__":
     app = QApplication(argv)
