@@ -23,16 +23,6 @@
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="1">
-     <widget class="QTextBrowser" name="textBrowser_1">
-      <property name="maximumSize">
-       <size>
-        <width>103</width>
-        <height>21</height>
-       </size>
-      </property>
-     </widget>
-    </item>
     <item row="1" column="0">
      <widget class="QCommandLinkButton" name="commandLinkButton_2">
       <property name="maximumSize">
@@ -46,16 +36,6 @@
       </property>
      </widget>
     </item>
-    <item row="4" column="1">
-     <widget class="QTextBrowser" name="textBrowser_5">
-      <property name="maximumSize">
-       <size>
-        <width>103</width>
-        <height>21</height>
-       </size>
-      </property>
-     </widget>
-    </item>
     <item row="3" column="0">
      <widget class="QCommandLinkButton" name="commandLinkButton_4">
       <property name="maximumSize">
@@ -66,16 +46,6 @@
       </property>
       <property name="text">
        <string/>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="1">
-     <widget class="QTextBrowser" name="textBrowser_4">
-      <property name="maximumSize">
-       <size>
-        <width>103</width>
-        <height>21</height>
-       </size>
       </property>
      </widget>
     </item>
@@ -95,16 +65,6 @@
       </property>
       <property name="text">
        <string/>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="1">
-     <widget class="QTextBrowser" name="textBrowser_3">
-      <property name="maximumSize">
-       <size>
-        <width>103</width>
-        <height>21</height>
-       </size>
       </property>
      </widget>
     </item>
@@ -136,16 +96,6 @@
     <item row="3" column="2">
      <widget class="QLineEdit" name="lineEdit_4"/>
     </item>
-    <item row="1" column="1">
-     <widget class="QTextBrowser" name="textBrowser_2">
-      <property name="maximumSize">
-       <size>
-        <width>103</width>
-        <height>21</height>
-       </size>
-      </property>
-     </widget>
-    </item>
     <item row="4" column="0">
      <widget class="QCommandLinkButton" name="commandLinkButton_5">
       <property name="maximumSize">
@@ -156,6 +106,41 @@
       </property>
       <property name="text">
        <string/>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QLabel" name="label_1">
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="QLabel" name="label_2">
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="1">
+     <widget class="QLabel" name="label_3">
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="1">
+     <widget class="QLabel" name="label_4">
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="1">
+     <widget class="QLabel" name="label_5">
+      <property name="text">
+       <string>TextLabel</string>
       </property>
      </widget>
     </item>

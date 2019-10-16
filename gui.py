@@ -25,11 +25,14 @@ class MainWindow(QDialog):
             #     w, tw, lang = tw, w, dest_lang
             self.translations.append(tw)
 
-            tb = getattr(self.form, f"textBrowser_{i}")
+            tb = getattr(self.form, f"label_{i}")
             tb.setText(w)
             tb.repaint()
-            
-            getattr(self.form, f"commandLinkButton_{i}").clicked.connect(partial(sentence_to_audio, w, lang))
+
+            btn = getattr(self.form, f"commandLinkButton_{i}")
+            try: btn.clicked.disconnect()
+            except: pass
+            btn.clicked.connect(partial(sentence_to_audio, w, lang))
 
             line = self.get_line(i - 1)
             line.setText("")
