@@ -2,3 +2,5 @@ hyper
 googletrans
 duolingo
 tqdm
+spacy
+selenium
