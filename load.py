@@ -48,29 +48,34 @@ log.debug("Loading words")
 words = d.get_vocabulary(language_abbr=src_lang)
 words = words["vocab_overview"]
 
-def duolingo_translate(word):
+def duolingo_translate(word, sl=src_lang, tl=dest_lang): # All translate methods must accept word, sl (source lang), and tl (trans/dest lang)
     # note that target/src are switched for some reason in the duo API
-    w = d.get_translations([quote(word)], target=src_lang, source=dest_lang)
+    w = d.get_translations([quote(word)], target=sl, source=tl)
     if w[word]:
         return w[word][0]
     wt = word.title()
-    w = d.get_translations([quote(wt)], target=src_lang, source=dest_lang) # fix for german nouns
+    w = d.get_translations([quote(wt)], target=sl, source=tl) # fix for german nouns
     if w[wt]:
         return w[wt][0]
         # log.error(f"Translate error: {w}, {word}")
 
-translate = lambda word: t.translate(word, src=src_lang, dest=dest_lang).text
+translate = lambda word, sl=src_lang, tl=dest_lang: t.translate(word, src=sl, dest=tl).text
 translate = duolingo_translate
 
-base = f"https://translate.google.com/#view=home&op=translate&sl={src_lang}&tl={dest_lang}"
 options = webdriver.ChromeOptions()
 options.add_argument('headless')
 driver = webdriver.Chrome('./chromedriver', options=options)
 
-def driver_translate(word):
-    driver.get(base+f"&text={word}")
-    sleep(0.2)
-    s = driver.find_element_by_xpath("/html/body/div[2]/div[1]/div[2]/div[1]/div[1]/div[2]/div[3]/div[1]/div[2]/div/span[1]/span")
+def headless_translate(word, sl=src_lang, tl=dest_lang):
+    driver.get(f"https://translate.google.com/#view=home&op=translate&sl={sl}&tl={tl}&text={quote(word)}")
+    
+    s = ""
+    while not s:
+        sleep(0.2)
+        try:
+            s = driver.find_element_by_xpath("/html/body/div[2]/div[1]/div[2]/div[1]/div[1]/div[2]/div[3]/div[1]/div[2]/div/span[1]/span")
+        except:
+            pass
     return s.text
 
 try:
@@ -114,8 +119,6 @@ if words:
     log.debug("Saving word_map to file")
     dump(word_map, open("word_map_save.txt", "wb"))
 
-driver.close()
-
 log.debug("Initializing tokenizer")
 nlp = English()
 tokenizer = Tokenizer(nlp.vocab)
@@ -132,4 +135,4 @@ def sentence_to_audio(sent):
         playsound(_ensure_audio_file(str(token)))
 
 # sentence_to_audio("Ich bin ein Mann")
-        
+translate_sentence = headless_translate # Wrapper method
