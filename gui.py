@@ -29,7 +29,7 @@ class MainWindow(QDialog):
             tb.setText(w)
             tb.repaint()
             
-            getattr(self.form, f"commandLinkButton_{i}").clicked.connect(partial(sentence_to_audio, w, lang, i))
+            getattr(self.form, f"commandLinkButton_{i}").clicked.connect(partial(sentence_to_audio, w, lang))
 
             line = self.get_line(i - 1)
             line.setText("")
@@ -77,10 +77,8 @@ class MainWindow(QDialog):
         line.repaint()
 
     def _reconn(self, new):
-        try:
-            self.form.check.clicked.disconnect()
-        except:
-            pass
+        try: self.form.check.clicked.disconnect()
+        except: pass
         self.form.check.clicked.connect(new)
 
         

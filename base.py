@@ -134,7 +134,7 @@ def _ensure_audio_file(word, lang=src_lang):
             gTTS(word, lang=lang).write_to_fp(file)
     return f
 
-def sentence_to_audio(sent, lang=src_lang, _i=0):
+def sentence_to_audio(sent, lang=src_lang):
     for token in tokenizer(sent): # tqdm(tokenizer(sent)):
         playsound(_ensure_audio_file(str(token), lang=lang))
 
