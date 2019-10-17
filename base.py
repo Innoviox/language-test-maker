@@ -207,7 +207,7 @@ class Challenge:
             self.tts = d['tts']
             self.stts = d['slowTts']
 
-            self.prompt = d['prompt']
+            self.corr = d['prompt']
 ##        else:
 ##            print(t, d.keys())
 ##            d['q']=1

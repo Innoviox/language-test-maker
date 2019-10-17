@@ -1,5 +1,6 @@
 from sys       import argv
 from functools import partial
+from random    import shuffle
 from PySide2   import QtCore, QtGui, QtWidgets
 from base      import get_challenges, Challenge, log, play, sentence_to_audio
 
@@ -81,6 +82,7 @@ class GuiChallenge(Challenge):
 class Challenges:
     def __init__(self):
         self.qs = [i for i in get_challenges(cls=GuiChallenge) if i.type in implemented]
+        shuffle(self.qs)
         self.idx = 0
     
     def setupUi(self, Dialog):
