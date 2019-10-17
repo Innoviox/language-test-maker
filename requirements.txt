@@ -9,3 +9,6 @@ playsound
 colorlog
 PySide2
 unidecode
+
+imageio
+tensorflow
