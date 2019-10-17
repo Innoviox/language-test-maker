@@ -3,7 +3,7 @@ from functools import partial
 from PySide2   import QtCore, QtGui, QtWidgets
 from base      import get_challenges, Challenge, log, play, sentence_to_audio
 
-implemented = ["form", "select"] #, "judge"]
+implemented = ["form", "select", "judge"]
 
 class GuiChallenge(Challenge):
     def setupUi(self, Dialog):
@@ -33,7 +33,7 @@ class GuiChallenge(Challenge):
                 a = f"radioBox_{i}"
                 setattr(self, a, QtWidgets.QRadioButton(Dialog))
                 o = getattr(self, a)
-                o.setGeometry(QtCore.QRect(x, y, 200, 20))
+                o.setGeometry(QtCore.QRect(x, y, 300, 20))
                 o.setObjectName(a)
 
                 if self.type == "form":
@@ -54,9 +54,11 @@ class GuiChallenge(Challenge):
         
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
+
+        log.info(f"Loaded {self.type} challenge")
         
     def check_answer(self):
-        if self.type in ["form", "select"] and getattr(self, f"radioBox_{self.corr + 1}").isChecked():
+        if self.type in ["form", "select", "judge"] and getattr(self, f"radioBox_{self.corr + 1}").isChecked():
             self.check.setText("Next")
             self.check.clicked.disconnect()
             self.check.clicked.connect(self.master.next)

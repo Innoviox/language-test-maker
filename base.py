@@ -190,6 +190,7 @@ class Challenge:
             self.prompt = d['prompt']
             self.corr = d['correctIndices'][0]
             self.tts = None
+            self.trans = headless_translate(self.choices[self.corr])
         elif t == "listenTap":
             c = d['choices']
             self.choices = [i['text'] for i in c]
