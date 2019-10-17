@@ -1,6 +1,9 @@
-from sys     import argv
-from PySide2 import QtCore, QtGui, QtWidgets
-from base    import get_challenges, Challenge, log
+from sys       import argv
+from functools import partial
+from PySide2   import QtCore, QtGui, QtWidgets
+from base      import get_challenges, Challenge, log, play, sentence_to_audio
+
+implemented = ["form", "select"] #, "judge"]
 
 class GuiChallenge(Challenge):
     def setupUi(self, Dialog):
@@ -18,23 +21,30 @@ class GuiChallenge(Challenge):
         self.check.clicked.connect(self.check_answer)
         self.widgets.append([self.check, "Check"])
 
-        if self.type == "form":
-            self.label = QtWidgets.QLabel(Dialog)
-            self.label.setGeometry(QtCore.QRect(30, 20, 340, 16))
-            self.label.setAlignment(QtCore.Qt.AlignCenter)
-            self.label.setObjectName("label")
-            self.widgets.append([self.label, self.prompt])
+        self.label = QtWidgets.QLabel(Dialog)
+        self.label.setGeometry(QtCore.QRect(30, 20, 340, 16))
+        self.label.setAlignment(QtCore.Qt.AlignCenter)
+        self.label.setObjectName("label")
+        self.widgets.append([self.label, self.prompt])
 
+        if self.type in implemented:
             x, y = 100, 75
             for i, c in enumerate(self.choices, start=1):
-                a = f"checkBox_{i}"
+                a = f"radioBox_{i}"
                 setattr(self, a, QtWidgets.QRadioButton(Dialog))
                 o = getattr(self, a)
                 o.setGeometry(QtCore.QRect(x, y, 200, 20))
                 o.setObjectName(a)
+
+                if self.type == "form":
+                    o.clicked.connect(partial(sentence_to_audio, c))
+                elif self.type == 'select':
+                    o.clicked.connect(partial(play, self.tts[i - 1]))
+                
                 self.widgets.append([o, c])
                 
                 y += 30
+            
 
         self.feedback = QtWidgets.QLabel(Dialog)
         self.feedback.setGeometry(QtCore.QRect(30, 230, 340, 16))
@@ -46,7 +56,7 @@ class GuiChallenge(Challenge):
         QtCore.QMetaObject.connectSlotsByName(Dialog)
         
     def check_answer(self):
-        if getattr(self, f"checkBox_{self.corr + 1}").isChecked():
+        if self.type in ["form", "select"] and getattr(self, f"radioBox_{self.corr + 1}").isChecked():
             self.check.setText("Next")
             self.check.clicked.disconnect()
             self.check.clicked.connect(self.master.next)
@@ -68,7 +78,7 @@ class GuiChallenge(Challenge):
 
 class Challenges:
     def __init__(self):
-        self.qs = [i for i in get_challenges(cls=GuiChallenge) if i.type=="form"]
+        self.qs = [i for i in get_challenges(cls=GuiChallenge) if i.type in implemented]
         self.idx = 0
     
     def setupUi(self, Dialog):

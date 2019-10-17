@@ -130,6 +130,11 @@ nlp = English()
 tokenizer = Tokenizer(nlp.vocab)
 
 def _ensure_audio_file(word, lang=src_lang):
+    if word.startswith("http"):
+        f = f"audio/{word.split('/')[-1]}.mp3"
+        with open(f, "wb") as file:
+            file.write(d.session.get(word).content)
+        return f
     f = AUDIO_PATH.format(lang, unidecode(word))
     if not exists(f):
         if not exists(f"audio/{lang}/"): mkdir(f"audio/{lang}/")
@@ -140,6 +145,9 @@ def _ensure_audio_file(word, lang=src_lang):
 def sentence_to_audio(sent, lang=src_lang):
     for token in tokenizer(sent): # tqdm(tokenizer(sent)):
         playsound(_ensure_audio_file(str(token), lang=lang), block=False)
+
+def play(url, lang=src_lang):
+    playsound(_ensure_audio_file(url, lang=lang), block=False)
 
 def gen_words(types=list(word_map.keys()), n=10):
     all_words = {}
@@ -167,6 +175,7 @@ class Challenge:
             self.prompt = " _____ ".join(d['promptPieces'])
             self.trans = d['solutionTranslation']
             self.corr = d['correctIndex']
+            self.tts = None
         elif t == "select":
             c = d['choices']
             self.choices = [i['phrase'] for i in c]
@@ -175,10 +184,12 @@ class Challenge:
 
             self.prompt = d['prompt']
             self.corr = d['correctIndex']
+            self.trans = headless_translate(self.choices[self.corr])
         elif t == "judge":
             self.choices = d['choices']
             self.prompt = d['prompt']
             self.corr = d['correctIndices'][0]
+            self.tts = None
         elif t == "listenTap":
             c = d['choices']
             self.choices = [i['text'] for i in c]
@@ -212,9 +223,3 @@ def get_challenges(src=src_lang, dest=dest_lang, cls=Challenge):
     chals = resp['challenges']
 
     return list(map(cls, chals))
-
-def play(url):
-    f = f"audio/{url.split('/')[-1]}.mp3"
-    with open(f, "wb") as file:
-        file.write(d.session.get(url))
-    playsound(f, block=False)
