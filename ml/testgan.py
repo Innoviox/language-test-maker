@@ -1,16 +1,21 @@
 import tensorflow as tf
 
 import glob, imageio, numpy as np, os, PIL, time
-from tensorflow.keras import layers
+from tensorflow.keras import layers, datasets
 
 import matplotlib.pyplot as plt
 
 from tqdm import trange
 
-(train_imgs, train_labs), (test_imgs, test_labs) = tf.keras.datasets.mnist.load_data()
+# (train_imgs, train_labs), (test_imgs, test_labs) = tf.keras.datasets.mnist.load_data()
 
-train_imgs = train_imgs.reshape(train_imgs.shape[0], 28, 28, 1).astype('float32')
-train_imgs = (train_imgs - 127.5) / 127.5 # Normalize the images to [-1, 1]
+# train_imgs = train_imgs.reshape(train_imgs.shape[0], 28, 28, 1).astype('float32')
+# train_imgs = (train_imgs - 127.5) / 127.5 # Normalize the images to [-1, 1]
+
+(train_imgs, train_labs), (test_imgs, test_labs) = datasets.cifar10.load_data()
+train_imgs = train_imgs.reshape(train_imgs.shape[0], 32, 32, 3).astype('float32')
+train_imgs, test_imgs = (train_imgs - 127.5) / 127.5, (test_imgs - 127.5) / 127.5 # normalize
+
 
 BUFFER_SIZE = 60000
 BATCH_SIZE  = 256
@@ -20,11 +25,11 @@ train_dataset = tf.data.Dataset.from_tensor_slices(train_imgs).shuffle(BUFFER_SI
 def make_generator_model():
     model = tf.keras.Sequential()
 
-    model.add(layers.Dense(7*7*256, use_bias=False, input_shape=(100,)))
+    model.add(layers.Dense(8*8*256, use_bias=False, input_shape=(100,)))
     model.add(layers.BatchNormalization())
     model.add(layers.LeakyReLU())
 
-    model.add(layers.Reshape((7, 7, 256)))
+    model.add(layers.Reshape((8, 8, 256)))
 
     model.add(layers.Conv2DTranspose(128, (5, 5), strides=(1, 1), padding='same', use_bias=False))
     model.add(layers.BatchNormalization())
@@ -34,14 +39,16 @@ def make_generator_model():
     model.add(layers.BatchNormalization())
     model.add(layers.LeakyReLU())
 
-    model.add(layers.Conv2DTranspose(1, (5, 5), strides=(2, 2), padding='same', use_bias=False))
+    model.add(layers.Conv2DTranspose(3, (5, 5), strides=(2, 2), padding='same', use_bias=False, activation='tanh'))
+
+    model.summary()
 
     return model
 
 def make_discriminator_model():
     model = tf.keras.Sequential()
 
-    model.add(layers.Conv2D(64, (5, 5), strides=(2, 2), padding='same', input_shape=[28, 28, 1]))
+    model.add(layers.Conv2D(64, (5, 5), strides=(2, 2), padding='same', input_shape=[32, 32, 3]))
     model.add(layers.LeakyReLU())
     model.add(layers.Dropout(0.3))
 
@@ -70,7 +77,7 @@ def generator_loss(fake):
 gen_opt = tf.keras.optimizers.Adam(1e-4)
 disc_opt = tf.keras.optimizers.Adam(1e-4)
 
-checkpt_dir = './training_checkpoints'
+checkpt_dir = './training_checkpoints_2'
 checkpt_pref = os.path.join(checkpt_dir, 'ckpt')
 checkpt = tf.train.Checkpoint(generator_optimizer=gen_opt,
                               discriminator_optimizer=disc_opt,
@@ -113,7 +120,7 @@ def gen_imgs(model, epoch, test):
         plt.imshow(predictions[i, :, :, 0] * 127.5 + 127.5, cmap='gray')
         plt.axis('off')
 
-    plt.savefig('image_at_epoch_{:04d}.png'.format(epoch))
+    plt.savefig('image2_at_epoch_{:04d}.png'.format(epoch))
     plt.close()
     # plt.show()
 
@@ -135,7 +142,7 @@ train(train_dataset, EPOCHS)
 anim_file = 'dcgan.gif'
 
 with imageio.get_writer(anim_file, mode='I') as writer:
-  filenames = glob.glob('image*.png')
+  filenames = glob.glob('image2*.png')
   filenames = sorted(filenames)
   last = -1
   for i,filename in enumerate(filenames):

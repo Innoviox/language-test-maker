@@ -53,3 +53,5 @@ ml/training_checkpoints/ckpt-9.data-00000-of-00001
 ml/training_checkpoints/ckpt-9.index
 *.index
 ml/training_checkpoints/ckpt-9.index
+ml/training_checkpoints
+ml/training_checkpoints_2
