@@ -76,6 +76,8 @@ checkpt = tf.train.Checkpoint(generator_optimizer=gen_opt,
                               discriminator_optimizer=disc_opt,
                               generator=generator, discriminator=discriminator)
 
+checkpt.restore(tf.train.latest_checkpoint(checkpt_dir))
+
 EPOCHS = 50
 noise_dim = 100
 num_examples_to_generate = 16
@@ -112,7 +114,8 @@ def gen_imgs(model, epoch, test):
         plt.axis('off')
 
     plt.savefig('image_at_epoch_{:04d}.png'.format(epoch))
-    plt.show()
+    plt.close()
+    # plt.show()
 
 def train(dataset, epochs):
     for epoch in trange(epochs):
@@ -123,8 +126,7 @@ def train(dataset, epochs):
 
         gen_imgs(generator, epoch, seed)
         
-        if epoch % 10 == 0:
-            checkpt.save(file_prefix=checkpt_pref)
+        checkpt.save(file_prefix=checkpt_pref)
 
     gen_imgs(generator, epoch, seed)
 
