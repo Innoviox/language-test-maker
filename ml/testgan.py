@@ -14,7 +14,8 @@ from tqdm import trange
 
 (train_imgs, train_labs), (test_imgs, test_labs) = datasets.cifar10.load_data()
 train_imgs = train_imgs.reshape(train_imgs.shape[0], 32, 32, 3).astype('float32')
-train_imgs, test_imgs = (train_imgs - 127.5) / 127.5, (test_imgs - 127.5) / 127.5 # normalize
+n = 127.5
+train_imgs, test_imgs = (train_imgs - n) / n, (test_imgs - n) / n # normalize
 
 
 BUFFER_SIZE = 60000
@@ -117,10 +118,10 @@ def gen_imgs(model, epoch, test):
 
     for i in range(predictions.shape[0]):
         plt.subplot(4, 4, i+1)
-        plt.imshow(predictions[i, :, :, 0] * 127.5 + 127.5, cmap='gray')
+        plt.imshow(predictions[i, :, :, 0] * n + n, cmap='inferno')
         plt.axis('off')
 
-    plt.savefig('image2_at_epoch_{:04d}.png'.format(epoch))
+    plt.savefig('image3_at_epoch_{:04d}.png'.format(epoch))
     plt.close()
     # plt.show()
 
@@ -137,12 +138,13 @@ def train(dataset, epochs):
 
     gen_imgs(generator, epoch, seed)
 
-train(train_dataset, EPOCHS)
+# train(train_dataset, EPOCHS)
+gen_imgs(generator, 50, seed)
 
 anim_file = 'dcgan.gif'
 
 with imageio.get_writer(anim_file, mode='I') as writer:
-  filenames = glob.glob('image2*.png')
+  filenames = glob.glob('image3*.png')
   filenames = sorted(filenames)
   last = -1
   for i,filename in enumerate(filenames):

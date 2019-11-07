@@ -68,8 +68,10 @@ translate = google_translate = lambda word, sl=src_lang, tl=dest_lang: t.transla
 translate = duolingo_translate
 
 options = webdriver.ChromeOptions()
-options.add_argument('headless')
+# options.add_argument('headless')
 driver = webdriver.Chrome('./chromedriver', options=options)
+find = driver.find_element_by_xpath
+
 
 def headless_translate(word, sl=src_lang, tl=dest_lang):
     driver.get(f"https://translate.google.com/#view=home&op=translate&sl={sl}&tl={tl}&text={quote(word)}")
