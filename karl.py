@@ -1,4 +1,4 @@
-# import base
+import base
 import time
 
 from selenium import webdriver
@@ -12,7 +12,6 @@ def read_deck(deck=14):
             f.write(i["front"] + "8888" + i["back"] + "\n")
 
 read_deck()
-exit()
 
 options = webdriver.ChromeOptions()
 # options.add_argument('headless')
@@ -31,24 +30,31 @@ time.sleep(3)
 
 find("/html/body/div/div/div[3]/div[1]/main/div/div/div/div[2]/form/div[3]/div/div/div/div[1]/div[1]/div[1]").click()
 time.sleep(1)
-find("/html/body/div/div/div[1]/div/div/div[3]/a/div").click()
+deck = 2 # 2 => German, 3 => German Verbs
+find(f"/html/body/div/div/div[1]/div/div/div[{deck}]/a/div").click()
 
-# for i in base.word_map.values():
-#     for word, (trans, _, _) in i.items():
-n = 0
-for line in open("quizlet_ex.txt"):
-    try:
-        word, trans = line.split("8888")
-        find("/html/body/div/div/div[3]/div[1]/main/div/div/div/div[2]/form/div[1]/div/div[1]/div/input").send_keys(word)
-        find("/html/body/div/div/div[3]/div[1]/main/div/div/div/div[2]/form/div[2]/div/div[1]/div/input").send_keys(trans)
-        find("/html/body/div/div/div[3]/div[1]/main/div/div/div/div[3]/button[3]").click()
-        n += 1
-        time.sleep(1)
+def make_cards(word, trans):
+    find("/html/body/div/div/div[3]/div[1]/main/div/div/div/div[2]/form/div[1]/div/div[1]/div/input").send_keys(word)
+    find("/html/body/div/div/div[3]/div[1]/main/div/div/div/div[2]/form/div[2]/div/div[1]/div/input").send_keys(trans)
+    find("/html/body/div/div/div[3]/div[1]/main/div/div/div/div[3]/button[3]").click()
+    time.sleep(1)
 
-        find("/html/body/div/div/div[3]/div[1]/main/div/div/div/div[2]/form/div[1]/div/div[1]/div/input").send_keys(trans)
-        find("/html/body/div/div/div[3]/div[1]/main/div/div/div/div[2]/form/div[2]/div/div[1]/div/input").send_keys(word)
-        find("/html/body/div/div/div[3]/div[1]/main/div/div/div/div[3]/button[3]").click()
-        n += 1
-        time.sleep(1)
-    except KeyboardInterrupt:
-        print(n)
+    find("/html/body/div/div/div[3]/div[1]/main/div/div/div/div[2]/form/div[1]/div/div[1]/div/input").send_keys(trans)
+    find("/html/body/div/div/div[3]/div[1]/main/div/div/div/div[2]/form/div[2]/div/div[1]/div/input").send_keys(word)
+    find("/html/body/div/div/div[3]/div[1]/main/div/div/div/div[3]/button[3]").click()
+    time.sleep(1)
+
+
+lines = [j for i in open("current.txt").readlines() for j in i.split("8888")]
+
+for i in base.word_map.values():
+    for word, (trans, _, _) in i.items():
+        if word not in lines:
+            make_cards(word, trans)
+             
+##n = 0
+##for line in open("quizlet_ex.txt"):
+##    try:
+##        word, trans = line.split("8888")
+##    except KeyboardInterrupt:
+##        print(n)
