@@ -1,7 +1,18 @@
 # import base
 import time
 
-from selenium        import webdriver
+from selenium import webdriver
+import os, subprocess, json
+
+def read_deck(deck=14):
+    cmd = f'curl -X GET "https://karl.qanta.org/api/v1/facts/?deck_id={deck}&user_id=3&limit=10000" -H "accept: application/json" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjozLCJleHAiOjE1NzQzODk3NDYsInN1YiI6ImFjY2VzcyJ9.qvW6_ji4yj5eHbusgu-2c8AtTK6nB21etiXeJlrL9Eg"'
+    a = subprocess.check_output(cmd, shell=True)
+    with open("current.txt", "w") as f:
+        for i in json.loads(a):
+            f.write(i["front"] + "8888" + i["back"] + "\n")
+
+read_deck()
+exit()
 
 options = webdriver.ChromeOptions()
 # options.add_argument('headless')
